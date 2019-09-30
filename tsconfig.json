@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "lib": ["es6", "dom"],
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "outFile": "build/user_script.js",
+    "skipLibCheck": true,
+    "strictNullChecks": true
+  },
+  "include": [
+    "user_script.ts",
+    "src/style.ts",
+    "src/common.ts",
+    "src/filterable.ts",
+    "src/crafting.ts",
+    "src/drops.ts",
+    "src/stages.ts",
+    "src/suits.ts",
+    "src/tags.ts",
+    "src/wardrobe.ts",
+    "src/wardrobe_item.ts",
+    "src/main.ts"
+  ]
+}
