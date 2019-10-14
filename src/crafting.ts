@@ -1,9 +1,34 @@
 var itemMetadata: {[s: string]: CraftingMetadata} = {};
 
+/**
+ * Look up the item metadata using the wardrobe ID.
+ */
+
+function getCraftingIngredient(
+  wid: string
+) : CraftingIngredient | null {
+
+  if (wid == 'future') {
+    return new CraftingIngredient(wid, '#', 'Future Item', 's-future-item', null);
+  }
+
+  if (!(wid in itemMetadata)) {
+    return null;
+  }
+
+  return new CraftingIngredient(
+    wid,
+    '/wardrobe/' + itemMetadata[wid]['href'],
+    itemMetadata[wid]['name'],
+    's-' + itemMetadata[wid]['href'].replace('/', '-'),
+    null);
+}
+
 class CraftingMetadata {
   href: string;
   name: string;
   crafting: {[s: string]: number} | null;
+  crafting_tags: Array<string> | null;
   drop_tags: Array<string> | null;
   drops: Array<string> | null;
 }
@@ -38,14 +63,11 @@ class CraftingPath {
       pathElements[pathElements.length - 1].needed = needed;
     }
 
-    var ingredient = new CraftingIngredient(
-      next,
-      '/wardrobe/' + itemMetadata[next]['href'],
-      itemMetadata[next]['name'],
-      's-' + itemMetadata[next]['href'].replace('/', '-'),
-      null);
+    var ingredient = getCraftingIngredient(next);
 
-    pathElements.push(ingredient);
+    if (ingredient) {
+      pathElements.push(ingredient);
+    }
 
     return newPath;
   };
@@ -109,6 +131,72 @@ class CraftingIngredient {
     this.name = name;
     this.icon = icon;
     this.needed = needed;
+  };
+
+  getCraftedFromPaths() : Array<CraftingPath> {
+    var root = new CraftingPath();
+    var graph = new CraftingGraph();
+    var reversePaths = [root.add(0, this.wid)];
+
+    for (var i = 0; i < reversePaths.length; i++) {
+      var path = reversePaths[i];
+
+      var wid1 = path.wid();
+      var crafting = graph.edges[wid1];
+
+      if (!crafting) {
+        continue;
+      }
+
+      var keys2 = Object.keys(crafting);
+
+      for (var j = 0; j < keys2.length; j++) {
+        var wid2 = keys2[j];
+        var needed = crafting[wid2] || 0;
+
+        reversePaths.push(path.add(needed, wid2));
+      }
+    }
+
+    reversePaths.sort(pathCompare);
+
+    return reversePaths.map(x => x.reverse());
+  };
+
+  getUsedToCraftPaths() : Array<CraftingPath> {
+    var root = new CraftingPath();
+    var paths = [root.add(0, this.wid)];
+
+    for (var i = 0; i < paths.length; i++) {
+      var path = paths[i];
+      var wid1 = path.wid();
+      var crafting = itemMetadata[wid1]['crafting'];
+
+      if (!crafting) {
+        continue;
+      }
+
+      var keys2 = Object.keys(crafting);
+
+      for (var j = 0; j < keys2.length; j++) {
+        var wid2 = keys2[j];
+        var needed = crafting[wid2];
+
+        paths.push(path.add(needed, wid2));
+      }
+    }
+
+    paths.sort(pathCompare);
+
+    var futureDesignMaterial = paths
+      .map(x => itemMetadata[x.wid()]['crafting_tags'])
+      .filter(x => x && new Set(x).has('future_design_material')).length != 0;
+
+    if (futureDesignMaterial) {
+      paths.push(root.add(0, 'future'));
+    }
+
+    return paths;
   };
 }
 

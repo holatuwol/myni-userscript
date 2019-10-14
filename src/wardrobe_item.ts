@@ -82,10 +82,16 @@ function createItemLink(
   }
   link.setAttribute('title', name);
   link.setAttribute('alt', name);
-  link.setAttribute('wid', wid);
 
   var outerIcon = document.createElement('div');
   outerIcon.classList.add('icon');
+
+  if (wid == 'future') {
+    outerIcon.textContent = name;
+  }
+  else {
+    link.setAttribute('wid', wid);
+  }
 
   var innerIcon = document.createElement('div');
   innerIcon.classList.add('inner-icon');
@@ -114,7 +120,10 @@ function formatCraftingMetadata(
     link.classList.add('have-witem');
   }
 
-  link.onclick = showCraftingPath.bind(null, link, list, item, path);
+  if (item.wid != 'future') {
+    link.onclick = showCraftingPath.bind(null, link, list, item, path);
+  }
+
   list.appendChild(link);
 }
 
@@ -291,61 +300,7 @@ function addWardrobeItemHelper() : void {
     }
   }
 
-  var root = new CraftingPath();
+  addWardrobeItemCraftingSection('Used to craft', item, CraftingIngredient.prototype.getUsedToCraftPaths.bind(item));
 
-  addWardrobeItemCraftingSection('Used to craft', item, function() {
-    var paths = [root.add(0, wid)];
-
-    for (var i = 0; i < paths.length; i++) {
-      var path = paths[i];
-      var wid1 = path.wid();
-      var crafting = itemMetadata[wid1]['crafting'];
-
-      if (!crafting) {
-        continue;
-      }
-
-      var keys2 = Object.keys(crafting);
-
-      for (var j = 0; j < keys2.length; j++) {
-        var wid2 = keys2[j];
-        var needed = crafting[wid2];
-
-        paths.push(path.add(needed, wid2));
-      }
-    }
-
-    paths.sort(pathCompare);
-
-    return paths;
-  });
-
-  addWardrobeItemCraftingSection('Crafted from', item, function() {
-    var graph = new CraftingGraph();
-    var reversePaths = [root.add(0, item.wid)];
-
-    for (var i = 0; i < reversePaths.length; i++) {
-      var path = reversePaths[i];
-
-      var wid1 = path.wid();
-      var crafting = graph.edges[wid1];
-
-      if (!crafting) {
-        continue;
-      }
-
-      var keys2 = Object.keys(crafting);
-
-      for (var j = 0; j < keys2.length; j++) {
-        var wid2 = keys2[j];
-        var needed = crafting[wid2] || 0;
-
-        reversePaths.push(path.add(needed, wid2));
-      }
-    }
-
-    reversePaths.sort(pathCompare);
-
-    return reversePaths.map(x => x.reverse());
-  });
+  addWardrobeItemCraftingSection('Crafted from', item, CraftingIngredient.prototype.getCraftedFromPaths.bind(item));
 }
