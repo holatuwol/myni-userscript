@@ -51,7 +51,7 @@ function addHelper() {
   }
   else if (pathParts[1] == 'wardrobe') {
     if (((pathParts.length == 3) && (pathParts[2] != '')) || ((pathParts.length == 4) && (pathParts[3] == ''))) {
-      addWardrobeHelper();
+      fetchMetadata(addWardrobeHelper);
     }
     else if (pathParts.length >= 4) {
       fetchMetadata(addWardrobeItemHelper);

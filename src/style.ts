@@ -1,6 +1,18 @@
 var styleElement = <HTMLStyleElement> document.createElement('style');
 
 styleElement.textContent = `
+.have-witem.safe-decompose {
+  background-color: #efe !important;
+}
+
+.secondary-content div {
+  text-align: right;
+}
+
+.insert-by-number {
+  margin-top: 2em;
+}
+
 .transitive-dependencies,
 .crafting-path {
   display: flex;

@@ -1,3 +1,6 @@
+declare function filter_Owned(): void;
+declare function filter_NotOwned(): void;
+
 /**
  * Returns the numbers typed into the input field.
  */
@@ -273,6 +276,70 @@ function getWardrobeShorthand(
 }
 
 /**
+ * Annotate
+ */
+
+function checkSafeDecompose() : void {
+  filter_Owned();
+
+  getWardrobe(function(wardrobe) {
+    var wardrobeSet = new Set(wardrobe);
+    var itemElements = <Array<HTMLAnchorElement>> Array.from(document.querySelectorAll('.have-witem'));
+
+    for (var i = 0; i < itemElements.length; i++) {
+      var itemElement = itemElements[i];
+
+      var wid = <string> itemElement.getAttribute('wid');
+      var item = getCraftingIngredient(wid);
+      var annotation;
+
+      if (item == null) {
+        annotation = 'N/A';
+        itemElement.classList.add('safe-decompose');
+      }
+      else {
+        var paths = item.getUsedToCraftPaths();
+
+        if (paths.length == 1) {
+          annotation = 'N/A'
+          itemElement.classList.add('safe-decompose');
+        }
+        else {
+          var haveCount = 0;
+          var futureDesignMaterial = false;
+
+          for (var j = 1; j < paths.length; j++) {
+            if (paths[j].wid() == 'future') {
+              futureDesignMaterial = true;
+            }
+            else if (wardrobeSet.has(paths[j].wid())) {
+              haveCount++;
+            }
+          }
+
+          if (futureDesignMaterial) {
+            annotation = 'future';
+          }
+          else {
+            annotation = haveCount + '/' + (paths.length - 1);
+
+            if (haveCount == (paths.length - 1)) {
+              itemElement.classList.add('safe-decompose');
+            }
+          }
+        }
+      }
+
+      var annotationElement = <HTMLDivElement> document.createElement('div');
+      annotationElement.textContent = annotation;
+
+      var annotationHolder = <HTMLDivElement> itemElement.querySelector('.secondary-content');
+      annotationHolder.appendChild(annotationElement);
+    }
+  })
+}
+
+/**
  * Add a helper to the page to make it easier to update your wardrobe by number.
  */
 
@@ -310,6 +377,7 @@ function addWardrobeHelper() : void {
       var currentWardrobeShorthand = getWardrobeShorthand(currentWardrobe, availableWardrobe);
 
       var insertByNumberContainer = document.createElement('div');
+      insertByNumberContainer.classList.add('insert-by-number');
 
       var oldWardrobeInputField = document.createElement('input');
       oldWardrobeInputField.setAttribute('type', 'hidden');
@@ -344,6 +412,9 @@ function addWardrobeHelper() : void {
 
       ownedFilterElement.addEventListener('click', updateMarginAndFocus);
       notOwnedFilterElement.addEventListener('click', updateMarginAndFocus);
+
+      var safeDecomposeButton = createButton('Check for Safe Decompose', checkSafeDecompose);
+      wardrobeManagerParentNode.insertBefore(safeDecomposeButton, insertByNumberContainer);
     }
   );
 }
