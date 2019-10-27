@@ -317,6 +317,10 @@ function checkSafeDecompose() : void {
             }
           }
 
+          if (haveCount > 0) {
+            --haveCount;
+          }
+
           if (futureDesignMaterial) {
             annotation = 'future';
           }
