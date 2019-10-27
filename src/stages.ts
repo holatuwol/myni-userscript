@@ -1,12 +1,28 @@
 declare function guide_sort(guide_element: string, sort_order: string): void;
 
+class GuideItem {
+  id: string;
+  name: string;
+  typetitle: string;
+  itemnum: number;
+  type: string;
+  typeid: number;
+  sub: string;
+  subannot: string | null;
+  sortid: number;
+  sortscore: number;
+  sortsub: number;
+  found: boolean;
+  new: boolean;
+}
+
 /**
  * Retrieve the stage base score.
  */
 
 function getBaseScore(
   stage: string,
-  callback: (s: string) => void
+  callback: (baseScore: string, guideItems: Array<GuideItem>) => void
 ) : void {
 
   jQuery.ajax({
@@ -16,13 +32,65 @@ function getBaseScore(
     url: 'https://my.nikkis.info/getguide/ln',
     data: JSON.stringify({'stage': stage}),
     success: function(data) {
-      callback(data['guide']['score']);
+      var guideItems = <Array<GuideItem>> data['guide']['wardrobe'];
+
+      callback(data['guide']['score'], guideItems);
     }
   });
 }
 
 /**
- * Show the base score for the given commission.
+ * Show the provided base score on the provided cell.
+ */
+
+function showBaseScore(
+  cell: HTMLElement,
+  baseScore: string,
+  guideItems: Array<GuideItem>
+) : void {
+
+  var hasNew = guideItems.filter(x => x.new).length > 0;
+
+  var content = <HTMLElement> cell.querySelector('.card-content');
+  var baseScoreContent = '';
+
+  if (hasNew) {
+    content.classList.add('have-witem');
+    baseScoreContent = '<strong class="new-icon">New!</strong>&nbsp;';
+  }
+
+  baseScoreContent += 'Base Score: ' + baseScore;
+
+  var baseScoreHolder = document.createElement('p');
+  baseScoreHolder.classList.add('base-score');
+  baseScoreHolder.innerHTML = baseScoreContent;
+
+  content.appendChild(baseScoreHolder);
+}
+
+/**
+ * Show the base score for the given stylist arena stage.
+ */
+
+function addArenaStageHelper() : void {
+  var cells = <Array<HTMLElement>> Array.from(document.querySelectorAll('.col'));
+
+  for (var i = 0; i < cells.length; i++) {
+    var cell = cells[i];
+
+    var guideElement = <HTMLAnchorElement | null> cell.querySelector('.card-action a');
+
+    if (!guideElement) {
+      continue;
+    }
+
+    var stage = guideElement.href.substring(guideElement.href.lastIndexOf('/') + 1);
+    getBaseScore('arena_common_' + stage, showBaseScore.bind(null, cell));
+  }
+}
+
+/**
+ * Show the base score for the given commission stage.
  */
 
 function showCommissionStageBaseScore(
@@ -38,17 +106,7 @@ function showCommissionStageBaseScore(
     return;
   }
 
-  var guide = 'commission_common_' + stage;
-
-  getBaseScore(guide, function(baseScore) {
-    var content = <HTMLElement> cell.querySelector('.card-content');
-
-    var baseScoreHolder = document.createElement('p');
-    baseScoreHolder.classList.add('base-score');
-    baseScoreHolder.textContent = 'Base Score: ' + baseScore;
-
-    content.appendChild(baseScoreHolder);
-  });
+  getBaseScore('commission_common_' + stage, showBaseScore.bind(null, cell));
 }
 
 /**

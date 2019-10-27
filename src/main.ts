@@ -37,6 +37,9 @@ function addHelper() {
     else if (pathParts[2] == 'custom') {
       addCustomStageHelper();
     }
+    else if (pathParts[2] == 'stylistsarena') {
+      addArenaStageHelper();
+    }
   }
   else if (pathParts[2] == 'suit') {
     if (pathParts[3]) {

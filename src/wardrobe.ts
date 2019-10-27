@@ -413,7 +413,7 @@ function addWardrobeHelper() : void {
       ownedFilterElement.addEventListener('click', updateMarginAndFocus);
       notOwnedFilterElement.addEventListener('click', updateMarginAndFocus);
 
-      var safeDecomposeButton = createButton('Check for Safe Decompose', checkSafeDecompose);
+      var safeDecomposeButton = createButton('Check for Safe Decompose (Experimental)', checkSafeDecompose);
       wardrobeManagerParentNode.insertBefore(safeDecomposeButton, insertByNumberContainer);
     }
   );

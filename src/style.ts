@@ -75,6 +75,12 @@ styleElement.textContent = `
 img.suit-dia.store:not(.have-suit-part) {
   border: solid 1px;
 }
+
+.base-score .new-icon {
+  position: relative;
+  padding: 0.2em 1em 0.2em 1em;
+  width: auto;
+}
 `;
 
 var head = <HTMLHeadElement> document.querySelector('head');
