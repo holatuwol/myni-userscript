@@ -47,6 +47,10 @@ Sometimes you wonder, "Do I still need to collect more of this item?" In order t
 
 This script adds a button to each item's page which you can use to have the script follow the crafting tree and present you with all of the items, marking whether you've added them to your wardrobe. The items are also compatible with the select and save button that's present on item pages, so if you know you already have already crafted that dependency, you can also add them directly to your wardrobe. The script also adds the slightly less useful feature which follows the crafting tree in reverse to discover every item that contributed into making the item.
 
+### Bookmark custom stages
+
+This feature allows you to bookmark a custom stage page so that you don't have to re-enter the different values for gorgeous/simple, elegance/lively, mature/cute, sexy/pure, warm/cool, and the special tags for the stage. It will also auto-submit to save you a click.
+
 ## Less practical features
 
 ### Add "check stage-matching attributes" button to MyNI guide
@@ -66,9 +70,3 @@ Note that this does NOT include the drop rate for items that drop from stages, s
 The script adds a filter box where you can type in the partial name of a drop item, and it will show just the items that match that part of the name.
 
 Since the game itself will tell you where you can find everything, this feature doesn't have much practical use.
-
-### Bookmark custom stages
-
-This feature allows you to bookmark a custom stage page so that you don't have to re-enter the different values for gorgeous/simple, elegance/lively, mature/cute, sexy/pure, and warm/cool.
-
-Since you have to re-enter the special attributes, this feature doesn't have much practical use.

@@ -1,4 +1,5 @@
 declare function guide_sort(guide_element: string, sort_order: string): void;
+declare function loadCustomGuide(): void;
 
 class GuideItem {
   id: string;
@@ -195,7 +196,9 @@ function addCommissionStageHelper() {
  * Update the query string so that you can bookmark it for the helper to find again.
  */
 
-function updateCustomStageSearch() {
+function updateCustomStageSearch(
+  selectWrappers: Array<HTMLDivElement>
+) : void {
   var attributes = null;
   var headers = document.querySelectorAll('.section .item-section-head');
 
@@ -218,48 +221,139 @@ function updateCustomStageSearch() {
     }
   }
 
+  var sa1Item = selectWrappers[0].querySelector('li.active');
+
+  if (sa1Item) {
+    var sa1Wrapper = <HTMLDivElement> sa1Item.closest('div.row');
+    var sa1Input = <HTMLInputElement> sa1Wrapper.querySelector('input[type=range]');
+    var sa1 = sa1Item.textContent + ',' + sa1Input.value;
+    parameters.push('sa1=' + encodeURIComponent(sa1));
+  }
+
+  var sa2Item = selectWrappers[1].querySelector('li.active');
+
+  if (sa2Item) {
+    var sa2Wrapper = <HTMLDivElement> sa2Item.closest('div.row');
+    var sa2Input = <HTMLInputElement> sa2Wrapper.querySelector('input[type=range]');
+    var sa2 = sa2Item.textContent + ',' + sa2Input.value;
+    parameters.push('sa2=' + encodeURIComponent(sa2));
+  }
+
   document.location.hash = '#' + parameters.join('&');
+}
+
+/**
+ * Select a custom attribute.
+ */
+
+function selectCustomAttribute(
+  selectWrapper: HTMLDivElement,
+  tag: string,
+  value: string
+) : void {
+
+  var listItems = selectWrapper.querySelectorAll('li');
+
+  for (var i = 0; i < listItems.length; i++) {
+    if (listItems[i].textContent == tag) {
+      listItems[i].click();
+
+      break;
+    }
+  }
+
+  var rowWrapper = <HTMLDivElement> selectWrapper.closest('div.row');
+
+  var input = <HTMLInputElement> rowWrapper.querySelector('input[type=range]');
+
+  input.value = value;
 }
 
 /**
  * Add a helper to the custom stage page.
  */
 
-function addCustomStageHelper() {
-  if (document.location.hash) {
-    // https://stackoverflow.com/questions/8648892/convert-url-parameters-to-a-javascript-object
-    var search = document.location.hash.substring(1);
-    var parameters = JSON.parse('{"' + decodeURI(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}');
+function selectCustomStageValues(
+  selectWrappers: Array<HTMLDivElement>
+) : void {
 
-    var keys = Object.keys(parameters);
+  // https://stackoverflow.com/questions/8648892/convert-url-parameters-to-a-javascript-object
+  var search = document.location.hash.substring(1);
+  var parameters = JSON.parse('{"' + decodeURI(search).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}');
 
-    for (var i = 0; i < keys.length; i++) {
-      var input = document.getElementById(keys[i]);
+  var keys = Object.keys(parameters);
 
-      if (!input) {
-        continue;
-      }
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
 
-      input.setAttribute('value', parameters[keys[i]]);
+    var input = <HTMLInputElement|null> document.getElementById(key);
+
+    if (!input) {
+      continue;
     }
+
+    input.value = parameters[key];
   }
+
+  if (parameters['sa1']) {
+    var sa1 = decodeURIComponent(parameters['sa1']).split(',');
+    selectCustomAttribute(selectWrappers[0], sa1[0], sa1[1]);
+  }
+
+  if (parameters['sa2']) {
+    var sa2 = decodeURIComponent(parameters['sa2']).split(',');
+    selectCustomAttribute(selectWrappers[1], sa2[0], sa2[1]);
+  }
+}
+
+/**
+ * Add listeners to update the location hash on user actions.
+ */
+
+function addCustomStageChangeListeners(
+  selectWrappers: Array<HTMLDivElement>
+) : void {
+
+  var customStageChangeListener = _.debounce(updateCustomStageSearch.bind(null, selectWrappers), 500);
 
   var attributes = null;
   var headers = document.querySelectorAll('.section .item-section-head');
 
-  for (var i = 0; i < headers.length; i++) {
-    if ((headers[i].textContent || '').toLowerCase().trim() == 'attributes') {
-      attributes = headers[i].parentNode;
-    }
+  var inputs = <Array<HTMLInputElement>> Array.from(document.querySelectorAll('input[type=range]'));
+
+  for (var i = 0; i < inputs.length; i++) {
+    inputs[i].addEventListener('input', customStageChangeListener);
   }
 
-  if (attributes) {
-    var inputs = attributes.querySelectorAll('input');
+  for (var i = 0; i < selectWrappers.length; i++) {
+    var listItems = <Array<HTMLLIElement>> Array.from(selectWrappers[i].querySelectorAll('li'));
 
-    for (var i = 0; i < inputs.length; i++) {
-      inputs[i].addEventListener('input', updateCustomStageSearch);
+    for (var i = 0; i < listItems.length; i++) {
+      listItems[i].addEventListener('click', customStageChangeListener);
     }
   }
+}
+
+/**
+ * Add a helper to the custom stage page.
+ */
+
+function addCustomStageHelper() : void {
+  var selectWrappers = <Array<HTMLDivElement>> Array.from(document.querySelectorAll('div.select-wrapper'));
+
+  if (selectWrappers.length == 0) {
+    setTimeout(addCustomStageHelper, 100);
+
+    return;
+  }
+
+  if (document.location.hash) {
+    selectCustomStageValues(selectWrappers);
+
+    loadCustomGuide();
+  }
+
+  addCustomStageChangeListeners(selectWrappers);
 }
 
 /**

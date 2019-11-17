@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Nikki's Info Add By Number
 // @namespace   holatuwol
-// @version     5.3
+// @version     5.4
 // @license     0BSD
 // @downloadURL https://openuserjs.org/install/holatuwol/Nikkis_Info_Add_By_Number.user.js
 // @updateURL   https://openuserjs.org/meta/holatuwol/Nikkis_Info_Add_By_Number.meta.js
