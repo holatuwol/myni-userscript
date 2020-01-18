@@ -2,10 +2,13 @@ declare var tag_data: {[s: string] : {[s: string]: Array<string>}};
 declare function filterTags(initialLoad: boolean): void;
 
 /**
- * Add drop metadata to the selected items.
+ *
+
+/**
+ * Update auto complete with the new set of autocomplete options.
  */
 
-function addDropMetadata(
+function updateAutocomplete(
   autocompletes: Set<string>
 ) : void {
 
@@ -33,20 +36,24 @@ function addDropMetadata(
   });
 
   window.filterTags(true);
+}
 
+/**
+ * Add drop metadata to the visible items.
+ */
+
+function addDropMetadata() : void {
   var items = window.tag_data;
   var keys = Object.keys(items);
 
-  for (var i = 0; i < keys.length; i++) {
-    var key = keys[i];
-    var selector = 'div[wid="' + key + '"]';
-    var container = document.querySelector(selector);
+  var containers = document.querySelectorAll('div[wid]');
 
-    if (!container) {
-      continue;
-    }
+  for (var i = 0; i < containers.length; i++) {
+    var container = containers[i];
 
-    if (container.querySelector('.drop-metadata')) {
+    var key = <string> container.getAttribute('wid');
+
+    if (!(key in items)) {
       continue;
     }
 
@@ -85,30 +92,27 @@ function addTagsHelper() {
   for (var i = 0; i < metadataKeys.length; i++) {
     var wid = metadataKeys[i];
 
-    if (!items[wid]) {
+    if (!(wid in items)) {
       continue;
     }
 
     Array.prototype.push.apply(items[wid].tags, itemMetadata[wid]['drop_tags']);
+
     items[wid]['drop_metadata'] = itemMetadata[wid].drops || [];
   }
 
-  var autocompletes = <Array<string>> [];
   var tagKeys = Object.keys(items);
+  var autocompletes = <Array<string>> [];
 
   for (var i = 0; i < tagKeys.length; i++) {
-    Array.prototype.push.apply(autocompletes, items[tagKeys[i]].tags);
+    var wid = tagKeys[i];
+
+    if (items[wid].tags.indexOf('future design material') == -1) {
+      items[wid].tags.push('not future design material');
+    }
+
+    Array.prototype.push.apply(autocompletes, items[wid].tags);
   }
 
-  var delayedAddDropMetadata = function(e: MouseEvent) {
-    setTimeout(addDropMetadata.bind(null, new Set(autocompletes)), 1000);
-  };
-
-  var buttons = document.querySelectorAll('a.waves-effect.waves-light.btn');
-
-  for (var i = 0; i < buttons.length; i++) {
-    buttons[i].addEventListener('click', delayedAddDropMetadata);
-  }
-
-  setTimeout(addDropMetadata.bind(null, new Set(autocompletes)), 1000);
+  setTimeout(updateAutocomplete.bind(null, new Set(autocompletes)), 1000);
 }
