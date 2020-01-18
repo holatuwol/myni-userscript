@@ -1,8 +1,46 @@
 declare var tag_data: {[s: string] : {[s: string]: Array<string>}};
 declare function filterTags(initialLoad: boolean): void;
 
+function exportItemAsCSVRow(
+  container : HTMLDivElement
+) : string {
+
+  var wid = <string> container.getAttribute('wid');
+
+  var metadata = window.tag_data[wid];
+
+  var name = metadata.name;
+  var type = metadata.type;
+
+  var tags = metadata.tags;
+  var rarity = tags.filter(x => x.indexOf('rare ') == 0)[0];
+  var style = tags.filter(x => styleTagSet.has(x)).sort(styleTagComparator);
+
+  return [wid, name, type, rarity].concat(style).join(',');
+}
+
 /**
- *
+ * Export the visible items as a CSV file
+ */
+
+function exportAsCSV() {
+  var csvHeader = 'id,name,type,rarity,style,style,style,style,style'
+  var csvContent = Array.from(document.querySelectorAll('#item-list div[wid]')).map(exportItemAsCSVRow).join('\n');
+
+  var blob = new Blob([csvHeader + '\n' + csvContent], { type: 'text/csv' });
+
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+
+  var hash = document.location.hash || '#';
+
+  link.download = hash.substring(1) + '.csv';
+
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
 
 /**
  * Update auto complete with the new set of autocomplete options.
@@ -115,4 +153,10 @@ function addTagsHelper() {
   }
 
   setTimeout(updateAutocomplete.bind(null, new Set(autocompletes)), 1000);
+
+  var exportButton = createButton('Export as CSV', exportAsCSV);
+
+  var itemList = <HTMLElement> document.getElementById('item-list');
+  var itemListParentElement = <HTMLElement> itemList.parentElement;
+  itemListParentElement.insertBefore(exportButton, itemList);
 }

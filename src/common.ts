@@ -165,3 +165,20 @@ function updateWardrobe(
     });
   })
 }
+
+var styleTags = [
+  'gorgeous', 'simple', 'elegance', 'lively', 'mature', 'cute', 'sexy', 'pure', 'warm', 'cool'
+]
+
+var styleTagSet = new Set(styleTags);
+
+/**
+ * A comparator to make sure style tags are returned in order.
+ */
+
+function styleTagComparator(
+  x : string, y : string
+) : number {
+
+  return styleTags.indexOf(x) - styleTags.indexOf(y);
+}
